@@ -1,43 +1,22 @@
 package layout;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.List;
-
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import java.util.Map;
 
 public class VerticalLayout implements Layout {
+
     @Override
-    public Sprite createSprite(List<FileInfo> images) {
-        Size size = getSize(images);
-        BufferedImage bi = new BufferedImage(size.width, size.height, TYPE_INT_ARGB);
-        Graphics2D graphics = bi.createGraphics();
-
+    public Sprite createSprite(Map<String, Dimension> images) {
+        Sprite sprite = new Sprite();
         int y = 0;
-        StringBuilder sb = new StringBuilder();
 
-        for (FileInfo image : images) {
-            graphics.drawImage(image.image, 0, y, null);
-
-            String className = StyleSheet.generateClassName(image.path);
-            sb.append(StyleSheet.createStyle(className, 0, y, image.image.getWidth(), image.image.getHeight()));
-
-            y += image.image.getHeight();
+        for (Map.Entry<String, Dimension> entry : images.entrySet()) {
+            Dimension dimension = entry.getValue();
+            sprite.placeImage(entry.getKey(), 0, y, dimension.width, dimension.height);
+            y += dimension.height;
         }
 
-        return new Sprite(bi, sb.toString());
-    }
-
-    private Size getSize(List<FileInfo> files) {
-        int height = 0;
-        int width = 0;
-
-        for (FileInfo file : files) {
-            height += file.image.getHeight();
-            width = Math.max(width, file.image.getWidth());
-        }
-
-        return new Size(width, height);
+        return sprite;
     }
 
 }

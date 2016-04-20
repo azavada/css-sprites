@@ -1,5 +1,3 @@
-package layout;
-
 import org.apache.commons.io.FilenameUtils;
 
 public class StyleSheet {

@@ -1,7 +1,8 @@
 package layout;
 
-import java.util.List;
+import java.awt.*;
+import java.util.Map;
 
 public interface Layout {
-    Sprite createSprite(List<FileInfo> images);
+    Sprite createSprite(Map<String, Dimension> images);
 }
