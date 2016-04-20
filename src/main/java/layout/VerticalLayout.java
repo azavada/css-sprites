@@ -8,7 +8,7 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 public class VerticalLayout implements Layout {
     @Override
-    public Sprite createSprite(List<FileInfo> images, String inputDir, String outputDir) {
+    public Sprite createSprite(List<FileInfo> images) {
         Size size = getSize(images);
         BufferedImage bi = new BufferedImage(size.width, size.height, TYPE_INT_ARGB);
         Graphics2D graphics = bi.createGraphics();
