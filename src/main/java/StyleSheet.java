@@ -5,9 +5,9 @@ public class StyleSheet {
         return val == 0 ? "0" : "-" + val + "px";
     }
 
-    public static String createStyle(String selector, int x, int y, int width, int height) {
-        return String.format("%s { width: %dpx; height: %dpx; background: url(images.png) %s %s no-repeat; }\r\n",
-                selector, width, height, formatValue(x), formatValue(y));
+    public static String createStyle(String selector, String imagePath, int x, int y, int width, int height) {
+        return String.format("%s { width: %dpx; height: %dpx; background: url(%s) %s %s no-repeat; }\r\n",
+                selector, width, height, imagePath, formatValue(x), formatValue(y));
     }
 
     public static String generateClassName(String filePath) {

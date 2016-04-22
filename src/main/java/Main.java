@@ -35,6 +35,14 @@ public class Main {
         return absolutePath.substring(startIndex + dir.length());
     }
 
+    private static String normalizeDir(String dir) {
+        if (StringUtils.isNotEmpty(dir)) {
+            return FilenameUtils.normalize(dir + File.separatorChar);
+        }
+
+        return "";
+    }
+
     public static Map<String, Dimension> getImages(Collection<File> files, String inputDir) throws IOException {
         Map<String, Dimension> images = new LinkedHashMap<>(files.size());
         cachedImages = new HashMap<>();
@@ -50,10 +58,12 @@ public class Main {
         return images;
     }
 
-    public static void saveSprite(Sprite sprite, String imageFile, String cssFile) throws IOException {
+    public static void saveSprite(Sprite sprite, String imageFilename, String cssFilename) throws IOException {
         BufferedImage bufferedImage = new BufferedImage(sprite.getWidth(), sprite.getHeight(), TYPE_INT_ARGB);
         Graphics2D graphics = bufferedImage.createGraphics();
         StringBuilder stringBuilder = new StringBuilder();
+
+        String relativeImagePath = getRelativePath(imageFilename, FilenameUtils.getFullPath(cssFilename));
 
         for (Map.Entry<String, Point> entry : sprite.getImages().entrySet()) {
             BufferedImage img = cachedImages.get(entry.getKey());
@@ -61,15 +71,27 @@ public class Main {
             graphics.drawImage(img, point.x, point.y, null);
 
             String className = StyleSheet.generateClassName(entry.getKey());
-            stringBuilder.append(StyleSheet.createStyle(className, point.x, point.y, img.getWidth(), img.getHeight()));
+            stringBuilder.append(
+                    StyleSheet.createStyle(className, relativeImagePath, point.x, point.y, img.getWidth(), img.getHeight()));
         }
 
-        ImageIO.write(bufferedImage, "PNG", new File(imageFile));
+        saveImage(imageFilename, bufferedImage);
+        saveTextFile(cssFilename, stringBuilder);
 
+        printStatus(sprite);
+    }
+
+    private static void saveTextFile(String cssFile, StringBuilder stringBuilder) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(cssFile)));
         writer.write(stringBuilder.toString());
         writer.close();
+    }
 
+    private static void saveImage(String imageFile, BufferedImage bufferedImage) throws IOException {
+        ImageIO.write(bufferedImage, "PNG", new File(imageFile));
+    }
+
+    private static void printStatus(Sprite sprite) {
         double spriteArea = sprite.getWidth() * sprite.getHeight();
         double efficiency = (sprite.getImagesArea() / spriteArea) * 100;
         System.out.println(String.format("Filled: %.2f%%", efficiency));
@@ -89,14 +111,6 @@ public class Main {
                 return new VerticalLayout();
         }
 
-    }
-
-    private static String normalizeDir(String dir) {
-        if (StringUtils.isNotEmpty(dir)) {
-            return FilenameUtils.normalize(dir + File.separatorChar);
-        }
-
-        return "";
     }
 
     public static void main(String[] args) throws IOException {
