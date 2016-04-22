@@ -50,7 +50,7 @@ public class Main {
         return images;
     }
 
-    public static void saveSprite(Sprite sprite, String dir) throws IOException {
+    public static void saveSprite(Sprite sprite, String imageFile, String cssFile) throws IOException {
         BufferedImage bufferedImage = new BufferedImage(sprite.getWidth(), sprite.getHeight(), TYPE_INT_ARGB);
         Graphics2D graphics = bufferedImage.createGraphics();
         StringBuilder stringBuilder = new StringBuilder();
@@ -64,12 +64,16 @@ public class Main {
             stringBuilder.append(StyleSheet.createStyle(className, point.x, point.y, img.getWidth(), img.getHeight()));
         }
 
-        ImageIO.write(bufferedImage, "PNG", new File(FilenameUtils.concat(dir, "images.png")));
+        ImageIO.write(bufferedImage, "PNG", new File(imageFile));
 
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(FilenameUtils.concat(dir, "images.css"))));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(cssFile)));
         writer.write(stringBuilder.toString());
         writer.close();
+
+        double spriteArea = sprite.getWidth() * sprite.getHeight();
+        double efficiency = (sprite.getImagesArea() / spriteArea) * 100;
+        System.out.println(String.format("Filled: %.2f%%", efficiency));
+        System.out.println(String.format("Output: %d x %d", sprite.getWidth(), sprite.getHeight()));
     }
 
     public static Layout createLayout(String option) {
@@ -87,18 +91,27 @@ public class Main {
 
     }
 
+    private static String normalizeDir(String dir) {
+        if (StringUtils.isNotEmpty(dir)) {
+            return FilenameUtils.normalize(dir + File.separatorChar);
+        }
+
+        return "";
+    }
+
     public static void main(String[] args) throws IOException {
         Cmd cmd = new Cmd(args);
 
-        String inputDir = cmd.getOptionValue("input-dir");
-        String outputDir = cmd.getOptionValue("output-dir");
+        String inputDir = normalizeDir(cmd.getOptionValue("dir"));
+        String img = cmd.getOptionValue("img");
+        String css = cmd.getOptionValue("css");
 
-        if (StringUtils.isNotEmpty(inputDir) && StringUtils.isNotEmpty(outputDir)) {
+        if (StringUtils.isNotEmpty(inputDir) && StringUtils.isNotEmpty(img) && StringUtils.isNotEmpty(css)) {
             Collection<File> files = searchFiles(inputDir);
 
             Layout layout = createLayout(cmd.getOptionValue("layout"));
             Sprite sprite = layout.createSprite(getImages(files, inputDir));
-            saveSprite(sprite, outputDir);
+            saveSprite(sprite, img, css);
         }
     }
 }

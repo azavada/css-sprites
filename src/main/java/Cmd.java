@@ -5,23 +5,28 @@ public class Cmd {
 
     public Cmd(String[] args) {
         Options options = new Options();
-        options.addOption(Option.builder("i")
-                .longOpt("input-dir")
+        options.addOption(Option.builder("dir")
                 .desc("Directory where to search for images")
                 .argName("dir")
                 .numberOfArgs(1)
                 .required()
                 .build());
 
-        options.addOption(Option.builder("o")
-                .longOpt("output-dir")
-                .desc("Directory where to save css and image")
-                .argName("dir")
+        options.addOption(Option.builder("img")
+                .desc("Path to output image")
+                .argName("path")
                 .numberOfArgs(1)
                 .required()
                 .build());
 
-        options.addOption(Option.builder()
+        options.addOption(Option.builder("css")
+                .desc("Path to output css")
+                .argName("path")
+                .numberOfArgs(1)
+                .required()
+                .build());
+
+        options.addOption(Option.builder("l")
                 .longOpt("layout")
                 .desc("specify layout orientation (horizontal, vertical, packed)")
                 .argName("orientation")
