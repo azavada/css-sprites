@@ -46,6 +46,10 @@ public class Cmd {
         return cmd == null ? "" : cmd.getOptionValue(opt);
     }
 
+    public boolean isOk() {
+        return cmd != null;
+    }
+
     private void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("css-sprites", options);
