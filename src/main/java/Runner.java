@@ -29,17 +29,18 @@ public class Runner {
             Collection<File> files = FileUtils.searchFiles(inputDir);
 
             Layout layout = createLayout(cmd.getOptionValue("layout"));
-            Sprite sprite = layout.createSprite(getImages(files, inputDir));
-            saveSprite(sprite);
+            Map<String, Dimension> images = getImages(files);
+            Sprite sprite = layout.createSprite(images);
+            saveSprite(sprite, images, inputDir);
         }
     }
 
-    public Map<String, Dimension> getImages(Collection<File> files, String inputDir) throws IOException {
+    public Map<String, Dimension> getImages(Collection<File> files) throws IOException {
         Map<String, Dimension> images = new LinkedHashMap<>(files.size());
         cachedImages = new HashMap<>();
 
         for (File file : files) {
-            String path = FileUtils.getRelativePath(file.getAbsolutePath(), inputDir);
+            String path = file.getAbsolutePath();
             BufferedImage image = ImageIO.read(file);
 
             cachedImages.put(path, image);
@@ -49,32 +50,31 @@ public class Runner {
         return images;
     }
 
-    public void saveSprite(Sprite sprite) throws IOException {
-        String imageFilename = cmd.getOptionValue("img");
-        String cssFilename = cmd.getOptionValue("css");
+    public void saveSprite(Sprite sprite, Map<String, Dimension> inputImages, String inputDir) throws IOException {
+        String resultImage = cmd.getOptionValue("img");
+        String resultCss = cmd.getOptionValue("css");
 
         BufferedImage bufferedImage = new BufferedImage(sprite.getWidth(), sprite.getHeight(), TYPE_INT_ARGB);
         Graphics2D graphics = bufferedImage.createGraphics();
         StringBuilder stringBuilder = new StringBuilder();
 
-        String relativeImagePath = "../images/" + FilenameUtils.getName(imageFilename);
-        //getRelativePath(imageFilename, FilenameUtils.getFullPath(cssFilename));
+        String relativeResultImagePath = "../images/" + FilenameUtils.getName(resultImage);
 
-        for (Map.Entry<String, Point> entry : sprite.getImages().entrySet()) {
+        for (Map.Entry<String, Dimension> entry : inputImages.entrySet()) {
             BufferedImage img = cachedImages.get(entry.getKey());
-            Point point = entry.getValue();
+            Point point = sprite.getPoint(entry.getKey());
             graphics.drawImage(img, point.x, point.y, null);
 
-            String className = StyleSheet.generateClassName(entry.getKey());
+            String className = StyleSheet.generateClassName(FileUtils.getRelativePath(entry.getKey(), inputDir));
             stringBuilder.append(
-//                    StyleSheet.createStyle(className, relativeImagePath, point.x, point.y, img.getWidth(), img.getHeight()));
-                    StyleSheet.createStyleWithPercent(className, relativeImagePath, point.x, point.y, img.getWidth(), img.getHeight(), sprite.getWidth(), sprite.getHeight()));
+//                    StyleSheet.createStyle(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight()));
+                    StyleSheet.createStyleWithPercent(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight(), sprite.getWidth(), sprite.getHeight()));
         }
 
-        FileUtils.saveImage(imageFilename, bufferedImage);
-        FileUtils.saveTextFile(cssFilename, stringBuilder);
+        FileUtils.saveImage(resultImage, bufferedImage);
+        FileUtils.saveTextFile(resultCss, stringBuilder);
 
-        printStatus(sprite, imageFilename);
+        printStatus(sprite, resultImage);
     }
 
     private static void printStatus(Sprite sprite, String filename) {

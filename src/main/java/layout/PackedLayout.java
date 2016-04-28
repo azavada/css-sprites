@@ -6,7 +6,7 @@ import java.util.List;
 
 public class PackedLayout implements Layout {
 
-    private Map<String, Dimension> createSortedMap(Map<String, Dimension> images) {
+    private Map<String, Dimension> sortMapBySize(Map<String, Dimension> images) {
         List<Map.Entry<String, Dimension>> list = new LinkedList<>(images.entrySet());
         Collections.sort(list, new Comparator<Map.Entry<String, Dimension>>() {
 
@@ -45,7 +45,7 @@ public class PackedLayout implements Layout {
     @Override
     public Sprite createSprite(Map<String, Dimension> images) {
         Sprite sprite = new Sprite();
-        Map<String, Dimension> map = createSortedMap(images);
+        Map<String, Dimension> map = sortMapBySize(images);
 
         Dimension rect = map.values().iterator().next();
         RectangularPacker packer = new RectangularPacker(rect.width, rect.height);

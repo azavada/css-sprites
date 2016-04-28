@@ -19,10 +19,6 @@ public class Sprite {
         this.height = Math.max(this.height, y + height);
     }
 
-    public Map<String, Point> getImages() {
-        return images;
-    }
-
     public int getWidth() {
         return width;
     }
@@ -33,5 +29,9 @@ public class Sprite {
 
     public int getImagesArea() {
         return area;
+    }
+
+    public Point getPoint(String key) {
+        return images.get(key);
     }
 }
