@@ -1,6 +1,4 @@
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.imageio.ImageIO;
@@ -9,7 +7,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 
 public class FileUtils {
     public static void saveTextFile(String cssFile, StringBuilder stringBuilder) throws IOException {
@@ -22,11 +23,49 @@ public class FileUtils {
         ImageIO.write(bufferedImage, "PNG", new File(imageFile));
     }
 
+    private static void sortFiles(File[] files) {
+        Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File file1, File file2) {
+                if (file1.isDirectory() == file2.isDirectory()) {
+                    String name1 = FilenameUtils.removeExtension(file1.getName());
+                    String name2 = FilenameUtils.removeExtension(file2.getName());
+
+                    int compareTo = name1.compareTo(name2);
+
+                    if (compareTo == 0) {
+                        return file1.getName().compareTo(file2.getName());
+                    }
+
+                    return compareTo;
+                } else {
+                    return file1.isDirectory() ? 1 : -1;
+                }
+            }
+        });
+    }
+
+    private static void visitDirectory(File dir, String fileFilter, Collection<File> result) {
+        File[] files = dir.listFiles();
+        sortFiles(files);
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    visitDirectory(file, fileFilter, result);
+                } else {
+                    if (fileFilter.compareToIgnoreCase(FilenameUtils.getExtension(file.getName())) == 0) {
+                        result.add(file);
+                    }
+                }
+            }
+        }
+    }
+
     public static Collection<File> searchFiles(String dir) {
-        return org.apache.commons.io.FileUtils.listFiles(
-                new File(dir),
-                FileFilterUtils.suffixFileFilter("png"),
-                TrueFileFilter.INSTANCE);
+        Collection<File> result = new ArrayList<>();
+        visitDirectory(new File(dir), "png", result);
+        return result;
     }
 
     public static String getRelativePath(String absolutePath, String dir) {

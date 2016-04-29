@@ -45,16 +45,19 @@ public class PackedLayout implements Layout {
     @Override
     public Sprite createSprite(Map<String, Dimension> images) {
         Sprite sprite = new Sprite();
-        Map<String, Dimension> map = sortMapBySize(images);
 
-        Dimension rect = map.values().iterator().next();
-        RectangularPacker packer = new RectangularPacker(rect.width, rect.height);
+        if (!images.isEmpty()) {
+            Map<String, Dimension> map = sortMapBySize(images);
 
-        for (Map.Entry<String, Dimension> entry : map.entrySet()) {
-            Dimension size = entry.getValue();
+            Dimension rect = map.values().iterator().next();
+            RectangularPacker packer = new RectangularPacker(rect.width, rect.height);
 
-            Point point = packer.packRectangle(size.width, size.height);
-            sprite.placeImage(entry.getKey(), point.x, point.y, size.width, size.height);
+            for (Map.Entry<String, Dimension> entry : map.entrySet()) {
+                Dimension size = entry.getValue();
+
+                Point point = packer.packRectangle(size.width, size.height);
+                sprite.placeImage(entry.getKey(), point.x, point.y, size.width, size.height);
+            }
         }
 
         return sprite;

@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -26,17 +26,16 @@ public class Runner {
         String inputDir = FileUtils.normalizeDir(cmd.getOptionValue("dir"));
 
         if (StringUtils.isNotEmpty(inputDir)) {
-            Collection<File> files = FileUtils.searchFiles(inputDir);
+            List<File> files = (List<File>) FileUtils.searchFiles(inputDir);
 
             Layout layout = createLayout(cmd.getOptionValue("layout"));
-            Map<String, Dimension> images = getImages(files);
-            Sprite sprite = layout.createSprite(images);
-            saveSprite(sprite, images, inputDir);
+            Sprite sprite = layout.createSprite(getImages(files));
+            saveSprite(sprite, files, inputDir);
         }
     }
 
     public Map<String, Dimension> getImages(Collection<File> files) throws IOException {
-        Map<String, Dimension> images = new LinkedHashMap<>(files.size());
+        Map<String, Dimension> images = new HashMap<>(files.size());
         cachedImages = new HashMap<>();
 
         for (File file : files) {
@@ -50,7 +49,7 @@ public class Runner {
         return images;
     }
 
-    public void saveSprite(Sprite sprite, Map<String, Dimension> inputImages, String inputDir) throws IOException {
+    public void saveSprite(Sprite sprite, Collection<File> inputFiles, String inputDir) throws IOException {
         String resultImage = cmd.getOptionValue("img");
         String resultCss = cmd.getOptionValue("css");
 
@@ -60,12 +59,13 @@ public class Runner {
 
         String relativeResultImagePath = "../images/" + FilenameUtils.getName(resultImage);
 
-        for (Map.Entry<String, Dimension> entry : inputImages.entrySet()) {
-            BufferedImage img = cachedImages.get(entry.getKey());
-            Point point = sprite.getPoint(entry.getKey());
+        for (File file : inputFiles) {
+            String key = file.getAbsolutePath();
+            BufferedImage img = cachedImages.get(key);
+            Point point = sprite.getPoint(key);
             graphics.drawImage(img, point.x, point.y, null);
 
-            String className = StyleSheet.generateClassName(FileUtils.getRelativePath(entry.getKey(), inputDir));
+            String className = StyleSheet.generateClassName(FileUtils.getRelativePath(key, inputDir));
             stringBuilder.append(
 //                    StyleSheet.createStyle(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight()));
                     StyleSheet.createStyleWithPercent(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight(), sprite.getWidth(), sprite.getHeight()));
