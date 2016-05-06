@@ -27,8 +27,7 @@ public class Runner {
 
         if (StringUtils.isNotEmpty(inputDir)) {
             List<File> files = (List<File>) FileUtils.searchFiles(inputDir);
-
-            Layout layout = createLayout(cmd.getOptionValue("layout"));
+            Layout layout = createLayout();
             Sprite sprite = layout.createSprite(getImages(files));
             saveSprite(sprite, files, inputDir);
         }
@@ -57,7 +56,7 @@ public class Runner {
         Graphics2D graphics = bufferedImage.createGraphics();
         StringBuilder stringBuilder = new StringBuilder();
 
-        String relativeResultImagePath = "../images/" + FilenameUtils.getName(resultImage);
+        String cssImagePath = getCssImagePath(resultImage);
 
         for (File file : inputFiles) {
             String key = file.getAbsolutePath();
@@ -65,16 +64,45 @@ public class Runner {
             Point point = sprite.getPoint(key);
             graphics.drawImage(img, point.x, point.y, null);
 
-            String className = StyleSheet.generateClassName(FileUtils.getRelativePath(key, inputDir));
-            stringBuilder.append(
-//                    StyleSheet.createStyle(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight()));
-                    StyleSheet.createStyleWithPercent(className, relativeResultImagePath, point.x, point.y, img.getWidth(), img.getHeight(), sprite.getWidth(), sprite.getHeight()));
+            stringBuilder.append(getStyle(key, inputDir, cssImagePath, sprite, img, point));
         }
 
         FileUtils.saveImage(resultImage, bufferedImage);
         FileUtils.saveTextFile(resultCss, stringBuilder);
 
         printStatus(sprite, resultImage);
+    }
+
+    private String getStyle(String imagePath, String inputDir, String cssImagePath, Sprite sprite, BufferedImage bufferedImage, Point point) {
+        String className = StyleSheet.generateClassName(FileUtils.getRelativePath(imagePath, inputDir));
+
+        if (cmd.hasOptionValue("percents")) {
+            return StyleSheet.createStyleWithPercent(
+                    className,
+                    cssImagePath,
+                    point.x,
+                    point.y,
+                    bufferedImage.getWidth(),
+                    bufferedImage.getHeight(),
+                    sprite.getWidth(),
+                    sprite.getHeight());
+        } else {
+            return StyleSheet.createStyle(
+                    className,
+                    cssImagePath,
+                    point.x,
+                    point.y,
+                    bufferedImage.getWidth(),
+                    bufferedImage.getHeight());
+        }
+    }
+
+    private String getCssImagePath(String outputImage) {
+        String cssImagePath = FilenameUtils.getName(outputImage);
+        if (cmd.hasOptionValue("cssurl")) {
+            cssImagePath = cmd.getOptionValue("cssurl");
+        }
+        return cssImagePath;
     }
 
     private static void printStatus(Sprite sprite, String filename) {
@@ -84,17 +112,18 @@ public class Runner {
         System.out.println(String.format("Output: %s (%d x %d)", filename, sprite.getWidth(), sprite.getHeight()));
     }
 
-    private static Layout createLayout(String option) {
-        switch (option) {
+    private Layout createLayout() {
+        int whiteSpace = cmd.getIntegerValue("white-spacing");
+        switch (cmd.getOptionValue("layout")) {
             case "packed":
-                return new PackedLayout();
+                return new PackedLayout(whiteSpace);
 
             case "horizontal":
-                return new HorizontalLayout();
+                return new HorizontalLayout(whiteSpace);
 
             case "vertical":
             default:
-                return new VerticalLayout();
+                return new VerticalLayout(whiteSpace);
         }
 
     }

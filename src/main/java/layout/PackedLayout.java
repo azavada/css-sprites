@@ -5,6 +5,11 @@ import java.util.*;
 import java.util.List;
 
 public class PackedLayout implements Layout {
+    private int whiteSpace = 0;
+
+    public PackedLayout(int whiteSpace) {
+        this.whiteSpace = whiteSpace;
+    }
 
     private Map<String, Dimension> sortMapBySize(Map<String, Dimension> images) {
         List<Map.Entry<String, Dimension>> list = new LinkedList<>(images.entrySet());
@@ -50,12 +55,12 @@ public class PackedLayout implements Layout {
             Map<String, Dimension> map = sortMapBySize(images);
 
             Dimension rect = map.values().iterator().next();
-            RectangularPacker packer = new RectangularPacker(rect.width, rect.height);
+            RectangularPacker packer = new RectangularPacker(rect.width + whiteSpace, rect.height + whiteSpace);
 
             for (Map.Entry<String, Dimension> entry : map.entrySet()) {
                 Dimension size = entry.getValue();
 
-                Point point = packer.packRectangle(size.width, size.height);
+                Point point = packer.packRectangle(size.width + whiteSpace, size.height + whiteSpace);
                 sprite.placeImage(entry.getKey(), point.x, point.y, size.width, size.height);
             }
         }
